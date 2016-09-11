@@ -40,6 +40,7 @@ plt.plot(sigma, mu);
 plt.scatter(df.std(), df.mean());
 plt.scatter([np.sqrt(A/B**2), np.sqrt(1/C)], [A/B, B/C], color='k');
 
+
 #Part with riskfree rate
 df3 = df.sub(df2.iloc[:,3],axis=0).dropna() #convert returns to excess returns
 
