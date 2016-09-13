@@ -69,8 +69,8 @@ plt.plot(SIGMA, MU);
 plt.scatter(X.std(), X.mean());
 plt.scatter([np.sqrt(A/B**2), np.sqrt(1/C), 0, vol_tangency, vol_market], [A/B, B/C, rf, mu_tangency, mu_market], color='k');
 plt.text(vol_market, mu_market, 'market portfolio', verticalalignment='top', horizontalalignment='left')
-plt.axis([0, 9, -1, 5]);
-plt.plot([0, vol_tangency], [rf, mu_tangency],);
+plt.axis([0, 9, 0, 5]);
+plt.plot([0, 9], [rf, rf+(mu_tangency-rf)/vol_tangency*9],);
 
 #%% 6
 ols = sm.OLS(X, sm.add_constant(Y['Mkt-RF'])).fit()
