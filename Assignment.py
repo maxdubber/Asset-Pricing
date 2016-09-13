@@ -10,6 +10,7 @@ from matplotlib import pyplot as plt, style
 style.use('ggplot')
 import statsmodels.api as sm
 from scipy import stats
+import pyperclip
 
 
 plt.close('all')
@@ -80,10 +81,12 @@ plt.axis([0, 9, 0, 5]);
 plt.plot([0, 9], [rf, rf+(mu_tangency-rf)/vol_tangency*9],);
 
 #%% 6
-ols = sm.OLS(X, sm.add_constant(Y['Mkt-RF'])).fit()
+ols = sm.OLS(X_e, sm.add_constant(Y['Mkt-RF'])).fit()
 out = ols.params.T
 out['std error const'] = np.sqrt(np.diag(np.dot(ols.resid.T, ols.resid)/ols.df_resid))/np.sqrt(T)
 out['std error Mkt-RF'] = out['std error const']*np.sqrt(T)/np.sqrt(np.dot(Y['Mkt-RF'].T, Y['Mkt-RF']))
+
+pyperclip.copy(out.round(3).to_latex())
 
 #%% 7
 alpha = pd.Series(name = 'alpha', index = X.columns)
