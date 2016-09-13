@@ -47,8 +47,8 @@ plt.scatter([np.sqrt(A/B**2), np.sqrt(1/C)], [A/B, B/C], color='k');
 plt.scatter(vol_market, mu_market, s=500, c='r', marker='*')
 
 # global minimum variance portfolio and 'the other portfolio'
-pi1 = SigmaInv*iota/C
-pim = SigmaInv*mu/B
+pi1 = SigmaInv*iota/C #global minimum variance
+pim = SigmaInv*mu/B #other
 
 #%% 4
 # make X excess return
@@ -61,7 +61,11 @@ SigmaInv_e = np.linalg.inv(X_e.cov())
 #tangency portfolio
 pi_star = (SigmaInv_e*mu_e)/(iota.T*SigmaInv_e*mu_e)  #weights
 mu_tangency = float(np.matrix(X.mean())*pi_star) #expected return
+mu_e_tangency = float(np.matrix(X_e.mean())*pi_star)
+mu_e_market = X_e['market'].mean()
 vol_tangency = float(np.sqrt(pi_star.T*np.matrix(X.cov())*pi_star)) #volatility
+vol_e_tangency = float(np.sqrt(pi_star.T*np.matrix(X_e.cov())*pi_star)) #volatility
+vol_e_market = X_e['market'].std()
 
 #%% 5
 
