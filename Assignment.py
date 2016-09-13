@@ -17,6 +17,12 @@ plt.close('all')
 X = pd.read_csv('Average Value Weighted Returns -- Monthly.csv', index_col = 0);
 Y = pd.read_csv('market_data.csv', index_col = 0)
 T,n = X.shape
+#market portfolio
+market_returns = Y['Mkt-RF']+Y['RF']
+mu_market = market_returns.mean()
+vol_market = market_returns.std()
+
+X['market'] = market_returns
 #%% 2
 X.describe()
 X.corr()
@@ -38,6 +44,7 @@ SIGMA = [f(m) for m in MU]
 plt.plot(SIGMA, MU);
 plt.scatter(X.std(), X.mean());
 plt.scatter([np.sqrt(A/B**2), np.sqrt(1/C)], [A/B, B/C], color='k');
+plt.scatter(vol_market, mu_market, s=500, c='r', marker='*')
 
 # global minimum variance portfolio and 'the other portfolio'
 pi1 = SigmaInv*iota/C
@@ -53,14 +60,10 @@ SigmaInv_e = np.linalg.inv(X_e.cov())
 
 #tangency portfolio
 pi_star = (SigmaInv_e*mu_e)/(iota.T*SigmaInv_e*mu_e)  #weights
-mu_tangency = np.matrix(X.mean())*pi_star #expected return
-vol_tangency = np.sqrt(pi_star.T*np.matrix(X.cov())*pi_star) #volatility
+mu_tangency = float(np.matrix(X.mean())*pi_star) #expected return
+vol_tangency = float(np.sqrt(pi_star.T*np.matrix(X.cov())*pi_star)) #volatility
 
 #%% 5
-#market portfolio
-market_returns = Y['Mkt-RF']+Y['RF']
-mu_market = market_returns.mean()
-vol_market = market_returns.std()
 
 MU = [i for i in np.arange(0,4.5,.01)]
 SIGMA = [f(m) for m in MU]
@@ -77,7 +80,6 @@ ols = sm.OLS(X, sm.add_constant(Y['Mkt-RF'])).fit()
 out = ols.params.T
 out['std error const'] = np.sqrt(np.diag(np.dot(ols.resid.T, ols.resid)/ols.df_resid))/np.sqrt(T)
 out['std error Mkt-RF'] = out['std error const']*np.sqrt(T)/np.sqrt(np.dot(Y['Mkt-RF'].T, Y['Mkt-RF']))
-
 
 #%% 7
 alpha = pd.Series(name = 'alpha', index = X.columns)
