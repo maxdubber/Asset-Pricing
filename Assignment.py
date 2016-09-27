@@ -106,6 +106,16 @@ stats.f.ppf(.95, n, T-n-1)
 
 #%% # # Part A.2 # #
 
+
+#%% 6
+X_sum = X.rolling(window=11)
+
+
+
+
+
+
+
 #%% 2
 factors = pd.DataFrame(index=X.index,columns=['SMB','HML'])
 factors.SMB = X[['SMALL LoBM', 'ME1 BM2', 'ME1 BM3', 'ME1 BM4', 'SMALL HiBM']].mean(axis=1) - \
@@ -172,3 +182,4 @@ print('''
 statistic value:  {:.4f}
 p-value of stat:  {:.4f}
 confidence bound: {:.4f}'''.format(z, 1-stats.f.cdf(z, n, T-n-1), stats.f.ppf(.95, n, T-n-1)))
+
