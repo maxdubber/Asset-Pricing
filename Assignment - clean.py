@@ -113,7 +113,7 @@ stats.f.ppf(.95, n, T-n-1)
 X_cum = X.shift(periods=1, axis=0) #shift one row 
 X_cum = X_cum.rolling(center=False,window=11).sum() #take some of previous 11 months
 X_cum = X_cum.ix[11:]
-X_mom = X.ix[11:]
+X_mom = X.ix[13:]
 alpha_mom = pd.DataFrame(index = X_mom.index)
 
 for index, row in X_mom.iterrows():

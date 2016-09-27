@@ -22,7 +22,10 @@ mu_market = market_returns.mean()
 vol_market = market_returns.std()
 
 X['market'] = market_returns
+X_e = X.subtract( Y['RF'], axis = 0)
 #%% 2
+
+
 X.describe()
 X.corr()
 
@@ -51,7 +54,6 @@ pim = SigmaInv*mu/B #other
 
 #%% 4
 # make X excess return
-X_e = X.subtract( Y['RF'], axis = 0)
 
 mu_e = np.matrix(X_e.mean()).T
 rf = Y['RF'].mean() #take the average of the riskfree rate as the riskfree rate for the next period
@@ -69,14 +71,22 @@ vol_e_market = X_e['market'].std()
 #%% 5
 
 MU = [i for i in np.arange(0,4.5,.01)]
-SIGMA = [f(m) for m in MU]
+MU_inefficient = [m for m in MU  if m < B/C]
+MU_efficient = [m for m in MU  if m > B/C]
+SIGMA_inefficient = [f(m) for m in MU_inefficient]
+SIGMA_efficient = [f(m) for m in MU_efficient]
 
-plt.plot(SIGMA, MU);
-plt.scatter(X.std(), X.mean());
+plt.figure(figsize=(10,4))
+plt.plot(SIGMA_inefficient, MU_inefficient,c='r');
+plt.plot(SIGMA_efficient, MU_efficient,c='b');
+plt.plot([0, 9], [rf, rf+(mu_tangency-rf)/vol_tangency*9], c='b')
+plt.scatter(X.std(), X.mean(), c='g');
 plt.scatter([np.sqrt(A/B**2), np.sqrt(1/C), 0, vol_tangency, vol_market], [A/B, B/C, rf, mu_tangency, mu_market], color='k');
 plt.text(vol_market, mu_market, 'market portfolio', verticalalignment='top', horizontalalignment='left')
 plt.axis([0, 9, 0, 5]);
-plt.plot([0, 9], [rf, rf+(mu_tangency-rf)/vol_tangency*9],);
+plt.xlabel('volatility')
+plt.ylabel('return')
+plt.tight_layout()
 
 #%% 6
 ols = sm.OLS(X_e, sm.add_constant(Y['Mkt-RF'])).fit()
@@ -156,22 +166,22 @@ sols = pd.DataFrame(index = pd.MultiIndex.from_product([factors.columns, ['param
 sols = sols.sort_index(level=[0,1])
 rsqs = pd.Series(index = X_e.columns)
 for column in sols.columns:
-    temp = sm.OLS(X[column], factors).fit()
+    temp = sm.OLS(X_e[column], factors).fit()
     sols.loc[(slice(None), 'param'),column] = pd.DataFrame(temp.params).set_index(pd.MultiIndex.from_product([temp.params.index, ['param']]))[0]
     sols.loc[(slice(None), 'std'),column] = pd.DataFrame(temp.HC0_se).set_index(pd.MultiIndex.from_product([temp.HC0_se.index, ['std']]))[0]
     rsqs[column] = temp.rsquared
 
 sols.xs((slice(None),'param')).T.round(3)
+sols.xs((slice(None),'std')).T.round(3)
 sols.round(3).T
 sols.xs((slice(None),'param')).divide( \
 sols.xs((slice(None),'std')),  ).round(3).abs().le(stats.t.ppf(.995,623)).T
+
+np.reshape(sols.xs(('market','param')).round(3),(5,5),'F')
 #%% 5
 ''' Conduct the GRS-test. What does the outcome mean? Do the hedge portfolio(s)
 capture the effect of the portfolio sort?'''
-ols = sm.OLS(X_e.drop(['market','SMALL LoBM', 'ME1 BM2', 'ME1 BM3', 'ME1 BM4', 'SMALL HiBM',
-                       'BIG LoBM', 'ME5 BM2', 'ME5 BM3', 'ME5 BM4', 'BIG HiBM',
-                       'SMALL HiBM', 'ME2 BM5', 'ME3 BM5', 'ME4 BM5', 'BIG HiBM',
-                       'SMALL LoBM', 'ME2 BM1', 'ME3 BM1', 'ME4 BM1', 'BIG LoBM'], axis=1), factors).fit()
+ols = sm.OLS(X_e.drop(['SMALL LoBM','BIG LoBM'], axis=1), factors).fit()
 k = ols.df_model
 f_bar = factors.drop('const', axis=1).mean()
 OhmInv = np.linalg.inv(factors.drop('const', axis=1).cov())
