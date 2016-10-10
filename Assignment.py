@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt, style
-style.use('ggplot')
+style.use('seaborn-whitegrid')
 from statsmodels import api as sm
 import statsmodels.stats.api as sms
 import statsmodels.formula.api as smf
@@ -190,30 +190,49 @@ stats.f.ppf(.95, n, T-n-1)
 
 
 #%% 1
-
 cons = pd.read_excel('consumption_data.xls', index_col = 0)
-plt.figure(6)
-plt.hist(cons['PCE growth'])
-plt.figure(7)
-plt.plot(cons['PCE growth'])
+
+plt.close('all')
+
+(fig, (sub1, sub2)) = plt.subplots(1,2,gridspec_kw={'width_ratios':[1,2]},figsize=(12,4))
+
+sub1.hist(cons['PCE growth'],bins=25,normed=True,alpha=.4)
+loc = cons['PCE growth'].mean()
+scale = cons['PCE growth'].std()
+left = cons['PCE growth'].min()
+right = cons['PCE growth'].max()
+x = np.arange(left, right,(right-left)/100)
+sub1.plot(x,stats.norm.pdf(x,loc=loc,scale=scale),linewidth=3,label='normal')
+sub1.plot(x,stats.t.pdf(x,7,loc=loc,scale=scale),linewidth=3,label='students t(7)')
+sub1.legend(title='density',loc=2,fontsize=11)
+sub1.set_xlim(left,right)
+
+sub2.plot(cons['PCE growth'])
+
+fig.tight_layout()
 
 cons['PCE growth'].describe()
-JB_cons = sms.jarque_bera(cons['PCE growth'])
+JB_cons = stats.jarque_bera(cons['PCE growth'])
 
 
 #%% 2
-
-cons_ols = sm.OLS(X_e.drop('market', axis=1), sm.add_constant(cons['PCE growth'])).fit()
+X = sm.add_constant(cons['PCE growth'])
+cons_ols = sm.OLS(X_e.drop('market', axis=1), ).fit()
 params = cons_ols.params.loc['PCE growth']
+cons_ols.HC0_se
+cons_ols.summary()
+out = pd.DataFrame({y:{'params':sm.OLS(X_e[y],X).fit().params.loc['PCE growth'],'std':sm.OLS(X_e[y],X).fit().HC0_se.loc['PCE growth']} for y in X_e.drop('market',axis=1)}).T
 
 
+out.xs('params',axis=1).divide(out.xs('std',axis=1)).round(3).abs().le(stats.t.ppf(.975,623)).T
+
+pyperclip.copy(out.round(3).to_latex())
 
 #%% 3
 
-mu_e_df = X_e.mean()
-mu_e_df = mu_e_df.iloc[0:25]
-params.index = mu_e_df.index
-cons_ols2 = sm.OLS(mu_e_df, params).fit()
+mu_e_df = X_e.mean().drop('market').sort_index()
+params = out['params'].sort_index()
+cons_ols2 = sm.OLS(mu_e_df, params).fit(cov_type='HC3')
 cons_ols2.summary()
 #Need corrected t values.
 
