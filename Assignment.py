@@ -215,7 +215,7 @@ mu_e_df = mu_e_df.iloc[0:25]
 params.index = mu_e_df.index
 cons_ols2 = sm.OLS(mu_e_df, params).fit()
 cons_ols2.summary()
-#Need corrected t values..
+#Need corrected t values.
 
 
 #%% 4
