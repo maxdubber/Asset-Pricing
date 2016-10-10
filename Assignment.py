@@ -211,6 +211,14 @@ params = cons_ols.params.loc['PCE growth']
 #%% 3
 
 mu_e_df = X_e.mean()
-mu_e_df = mu_e_df.iloc[0:24]
+mu_e_df = mu_e_df.iloc[0:25]
 params.index = mu_e_df.index
-cons_ols2 = sm.OLS(mu_e_df.iloc[0:24], params).fit()
+cons_ols2 = sm.OLS(mu_e_df, params).fit()
+cons_ols2.summary()
+#Need corrected t values..
+
+
+#%% 4
+
+cons_ols3 = sm.OLS(X_e['market'], cons['PCE growth']).fit()
+cons_ols3.summary()
