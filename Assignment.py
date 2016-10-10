@@ -234,10 +234,12 @@ mu_e_df = X_e.mean().drop('market').sort_index()
 params = out['params'].sort_index()
 cons_ols2 = sm.OLS(mu_e_df, params).fit(cov_type='HC3')
 cons_ols2.summary()
+
 #Need corrected t values.
 
 
 #%% 4
 
-cons_ols3 = sm.OLS(X_e['market'], cons['PCE growth']).fit()
+cons_ols3 = sm.OLS(X_e['market'], sm.add_constant(cons['PCE growth'])).fit()
 cons_ols3.summary()
+print('from 4 = ', X_e['market'].mean()/cons_ols3.params.loc['PCE growth'], ',from 3 =', cons_ols2.params.loc['PCE growth'])
